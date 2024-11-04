@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from sklearn.model_selection import train_test_split
 import torch
@@ -29,6 +30,24 @@ def unpickle(file):
     with open(file, 'rb') as fo:
         dict = pickle.load(fo, encoding='bytes')
     return dict
+
+
+def get_test_accuracy(model, test_loader):
+    model.eval()  # 切换到评估模式
+    correct = 0
+    total = 0
+
+    with torch.no_grad():
+        for inputs, labels in test_loader:
+            outputs = model(inputs)
+            _, predicted = torch.topk(outputs.data, 2, dim=1)
+            total += labels.size(0)
+            for i in range(labels.size(0)):
+                if labels[i] in predicted[i]:
+                    correct += 1
+    accuracy = correct / total
+    return accuracy
+    # print(f'Accuracy on test set: {accuracy * 100:.2f}%')
 
 print("loading data...")
 HASYv2 = unpickle("./data/HASYv2")
@@ -73,26 +92,16 @@ for epoch in range(num_epochs):
 
         running_loss += loss.item()
 
-    print(f'Epoch {epoch+1}/{num_epochs}, Loss: {running_loss/len(train_loader)}')
+    accuracy = get_test_accuracy(model, test_loader)
+    print(f'Epoch {epoch+1}/{num_epochs},\
+        \tLoss: {running_loss/len(train_loader)}\
+        \tAccuracy: {accuracy}')
 
-print("evaluating model...")
-model.eval()  # 切换到评估模式
-correct = 0
-total = 0
-
-with torch.no_grad():
-    for inputs, labels in test_loader:
-        outputs = model(inputs)
-        _, predicted = torch.topk(outputs.data, 5, dim=1)
-        total += labels.size(0)
-        for i in range(labels.size(0)):
-            if labels[i] in predicted[i]:
-                correct += 1
-
-accuracy = correct / total
-print(f'Accuracy on test set: {accuracy * 100:.2f}%')
 
 current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+model_directory = './models'
 model_filename = f'model_{current_time}.pth'
-torch.save(model.state_dict(), model_filename)
+full_model_path = os.path.join(model_directory, model_filename)
+os.makedirs(model_directory, exist_ok=True)
+torch.save(model.state_dict(), full_model_path)
 print(f"model saved as: {model_filename}")
