@@ -1,0 +1,30 @@
+[project]
+name = "latex-recognize"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "hzy", email = "1448424184@qq.com" }
+]
+dependencies = [
+    "numpy==1.26.4",
+    "matplotlib>=3.9.2",
+    "pillow>=11.0.cv g0",
+    "scikit-learn>=1.5.2",
+    "torch>=2.2.2",
+]
+readme = "README.md"
+requires-python = ">= 3.12"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = []
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/latex_recognize"]
