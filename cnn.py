@@ -49,59 +49,60 @@ def get_test_accuracy(model, test_loader):
     return accuracy
     # print(f'Accuracy on test set: {accuracy * 100:.2f}%')
 
-print("loading data...")
-HASYv2 = unpickle("./data/HASYv2")
-data = np.array(HASYv2['data'])
-labels = np.array(HASYv2['labels'])
+if __name__ == '__main__':
+    print("loading data...")
+    HASYv2 = unpickle("./data/HASYv2")
+    data = np.array(HASYv2['data'])
+    labels = np.array(HASYv2['labels'])
 
-print("processing data...")
-data = data[:, :, 0, :]
-data = data.transpose(2, 0, 1)
-X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.2, random_state=42)
-# 进一步调整标签形状
-y_train = y_train.flatten()
-y_test = y_test.flatten()
-# 转换为PyTorch张量
-X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
-y_train_tensor = torch.tensor(y_train, dtype=torch.long)
-X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
-y_test_tensor = torch.tensor(y_test, dtype=torch.long)
-# 创建数据集和数据加载器
-train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
-test_dataset = TensorDataset(X_test_tensor, y_test_tensor)
+    print("processing data...")
+    data = data[:, :, 0, :]
+    data = data.transpose(2, 0, 1)
+    X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.2, random_state=42)
+    # 进一步调整标签形状
+    y_train = y_train.flatten()
+    y_test = y_test.flatten()
+    # 转换为PyTorch张量
+    X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
+    y_train_tensor = torch.tensor(y_train, dtype=torch.long)
+    X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
+    y_test_tensor = torch.tensor(y_test, dtype=torch.long)
+    # 创建数据集和数据加载器
+    train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
+    test_dataset = TensorDataset(X_test_tensor, y_test_tensor)
 
-train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
 
-print("training model...")
-model = SimpleCNN()
-# 设置损失函数和优化器
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
-# 训练模型
-num_epochs = 1  # 可以根据需要调整
-for epoch in range(num_epochs):
-    model.train()
-    running_loss = 0.0
-    for inputs, labels in train_loader:
-        optimizer.zero_grad()  # 清除梯度
-        outputs = model(inputs)
-        loss = criterion(outputs, labels)
-        loss.backward()  # 反向传播
-        optimizer.step()  # 更新参数
+    print("training model...")
+    model = SimpleCNN()
+    # 设置损失函数和优化器
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    # 训练模型
+    num_epochs = 1  # 可以根据需要调整
+    for epoch in range(num_epochs):
+        model.train()
+        running_loss = 0.0
+        for inputs, labels in train_loader:
+            optimizer.zero_grad()  # 清除梯度
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()  # 反向传播
+            optimizer.step()  # 更新参数
 
-        running_loss += loss.item()
+            running_loss += loss.item()
 
-    accuracy = get_test_accuracy(model, test_loader)
-    print(f'Epoch {epoch+1}/{num_epochs},\
-        \tLoss: {running_loss/len(train_loader)}\
-        \tAccuracy: {accuracy}')
+        accuracy = get_test_accuracy(model, test_loader)
+        print(f'Epoch {epoch+1}/{num_epochs},\
+            \tLoss: {running_loss/len(train_loader)}\
+            \tAccuracy: {accuracy}')
 
 
-current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-model_directory = './models'
-model_filename = f'model_{current_time}.pth'
-full_model_path = os.path.join(model_directory, model_filename)
-os.makedirs(model_directory, exist_ok=True)
-torch.save(model.state_dict(), full_model_path)
-print(f"model saved as: {model_filename}")
+    current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+    model_directory = './models'
+    model_filename = f'model_{current_time}.pth'
+    full_model_path = os.path.join(model_directory, model_filename)
+    os.makedirs(model_directory, exist_ok=True)
+    torch.save(model.state_dict(), full_model_path)
+    print(f"model saved as: {model_filename}")

@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 from pprint import pprint
 import numpy as np
-
+import json
+from collections import OrderedDict
 # np.set_printoptions(threshold=np.inf)
 
 def unpickle(file):
@@ -17,17 +18,18 @@ labels = HASYv2['labels']
 symbols = HASYv2['latex_symbol']
 print("data loaded")
 
-n = 120600
-image = data[:, :, :, n]  # Shape (32, 32, 3)
+def print_img(n):
+    image = data[:, :, :, n]
+    print(symbols[n])
+    plt.imshow(image)
+    plt.axis("off")
+    plt.show()
 
-# image_label = labels[n]
-print(image)
-print(symbols[n])
-# Display the image
-plt.imshow(image)
-# plt.axis("off")  # Hide the axes
-plt.show()
+for n in range(168233):
+    if(labels[n][0]==300):
+        print(n)
+        print_img(n+1)
+        break
 
-data = data[:, :, 0, :]
-print(data.shape)
-print(labels)
+# unique_symbols = list(OrderedDict.fromkeys(str(symbol.item()) for symbol in symbols))
+# print(unique_symbols)
