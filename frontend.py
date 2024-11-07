@@ -101,8 +101,7 @@ class MainWindow(QMainWindow):
 
     def predict(self):
         img_path = './imgs/test.jpg'
-        svg_mapping = load_svg_mapping()
-        symbol_mapping = load_symbol_mapping()
+        mapping = load_mapping()
         self.canvas.save_image(img_path)
         img_tensor = self.canvas.get_image(img_path)
 
@@ -117,21 +116,37 @@ class MainWindow(QMainWindow):
         # Display top 5 results with SVGs
         for idx in predicted[0]:
             label = str(idx.item())
-            if label in svg_mapping:
-                svg_data = base64.b64decode(svg_mapping[label])
+            if label in mapping:
+                # svg widget
+                svg_data = base64.b64decode(mapping.get(label, "")["svg"])
                 svg_widget = QSvgWidget()
                 svg_widget.load(svg_data)
                 svg_widget.setFixedSize(100, 100)  # Set square size for SVG
 
-                # LaTeX symbol handling
+                # LaTeX symbol discription
+                label_label = QLabel()
+                label_label.setText("label: " + label)
+
                 symbol_label = QLabel()
-                symbol_text = symbol_mapping.get(label, "")  # Retrieve LaTeX code
-                symbol_label.setText(symbol_text[0])
+                symbol_text = mapping.get(label, "")["symbol"]
+                symbol_label.setText("symbol: " + symbol_text)
+
+                unicode_label = QLabel()
+                unicode_text = mapping.get(label, "")["unicode"]
+                unicode_label.setText("unicode: " + unicode_text)
+
+                discription_layout = QVBoxLayout()
+                discription_layout.addWidget(label_label)
+                discription_layout.addWidget(symbol_label)
+                discription_layout.addWidget(unicode_label)
+
+                discription_container = QWidget()
+                discription_container.setLayout(discription_layout)
 
                 # Horizontal layout to place SVG and LaTeX side by side
                 item_layout = QHBoxLayout()
                 item_layout.addWidget(svg_widget)
-                item_layout.addWidget(symbol_label)
+                item_layout.addWidget(discription_container)
 
                 # Container widget to hold the layout
                 item_container = QWidget()
@@ -150,12 +165,8 @@ def load_model(model_path):
     model.eval()
     return model
 
-def load_svg_mapping():
-    with open("./mappings/label_svg_mapping.json", "r", encoding="utf-8") as file:
-        return json.load(file)
-
-def load_symbol_mapping():
-    with open('./mappings/label_symbol_mapping.json', 'r', encoding='utf-8') as file:
+def load_mapping():
+    with open("./mappings/mappings.json", "r", encoding="utf-8") as file:
         return json.load(file)
 
 if __name__ == '__main__':

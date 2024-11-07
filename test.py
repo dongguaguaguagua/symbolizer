@@ -3,6 +3,7 @@ from pprint import pprint
 import numpy as np
 import json
 from collections import OrderedDict
+from natsort import natsorted
 # np.set_printoptions(threshold=np.inf)
 
 def unpickle(file):
@@ -11,13 +12,6 @@ def unpickle(file):
         dict = pickle.load(fo, encoding='bytes')
     return dict
 
-print("loading data...")
-HASYv2 = unpickle("./data/HASYv2")
-data = HASYv2['data']
-labels = HASYv2['labels']
-symbols = HASYv2['latex_symbol']
-print("data loaded")
-
 def print_img(n):
     image = data[:, :, :, n]
     print(symbols[n])
@@ -25,11 +19,21 @@ def print_img(n):
     plt.axis("off")
     plt.show()
 
-for n in range(168233):
-    if(labels[n][0]==300):
-        print(n)
-        print_img(n+1)
-        break
+def print_img_from_label(label):
+    for n in range(168233):
+        if(labels[n][0]==label):
+            print(n)
+            print_img(n+3)
+            break
+
+if __name__ == '__main__':
+    print("loading data...")
+    HASYv2 = unpickle("./data/HASYv2")
+    data = HASYv2['data']
+    labels = HASYv2['labels']
+    symbols = HASYv2['latex_symbol']
+    print("data loaded")
+    print_img_from_label(174)
 
 # unique_symbols = list(OrderedDict.fromkeys(str(symbol.item()) for symbol in symbols))
 # print(unique_symbols)
