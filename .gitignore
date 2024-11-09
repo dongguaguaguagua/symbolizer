@@ -8,8 +8,9 @@ wheels/
 
 # venv
 .venv
-
 data/
+models/
+*.onnx
 *.pth
 .DS_Store
 

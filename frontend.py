@@ -11,7 +11,7 @@ from PyQt5.QtCore import Qt, QPoint
 from PyQt5.QtSvg import QSvgWidget
 from torchvision import transforms
 from PIL import Image
-from cnn import SimpleCNN
+from cnn import SimpleCNN, EfficientNetB0Model
 
 class Canvas(QWidget):
     def __init__(self):
@@ -55,9 +55,11 @@ class Canvas(QWidget):
         self.image.save(img_path)
 
     def get_image(self, img_path):
-        image = Image.open(img_path).convert("L")
+        # image = Image.open(img_path).convert("L")
+        image = Image.open(img_path)
         transform = transforms.ToTensor()
         img_tensor = transform(image)
+        img_tensor = img_tensor.unsqueeze(0)
         return img_tensor
 
 
@@ -159,7 +161,10 @@ class MainWindow(QMainWindow):
 
 
 def load_model(model_path):
-    model = SimpleCNN()
+    # model = SimpleCNN()
+    model = EfficientNetB0Model(370)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = model.to(device)
     model.load_state_dict(torch.load(model_path))
     model.eval()
     return model
@@ -169,7 +174,7 @@ def load_mapping():
         return json.load(file)
 
 if __name__ == '__main__':
-    model_path = './models/epoch=2.pth'
+    model_path = './models/EfficientNetB0-epoch10.pth'
     app = QApplication(sys.argv)
     model = load_model(model_path)
     window = MainWindow(model)
