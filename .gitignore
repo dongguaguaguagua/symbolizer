@@ -12,3 +12,11 @@ wheels/
 data/
 *.pth
 .DS_Store
+
+lib64
+lib/
+lib64/
+include/
+bin/
+share/
+models/
