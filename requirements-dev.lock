@@ -74,5 +74,7 @@ torch==2.2.2
     # via torchvision
 torchvision==0.17.2
     # via latex-recognize
+tqdm==4.67.0
+    # via latex-recognize
 typing-extensions==4.12.2
     # via torch
