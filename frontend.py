@@ -45,7 +45,6 @@ class Canvas(QWidget):
         self.last_point = None
 
     def _map_to_image(self, pos):
-
         return QPoint(pos.x() // self.scale_factor, pos.y() // self.scale_factor)
 
     def clear_canvas(self):
@@ -170,7 +169,7 @@ def load_mapping():
         return json.load(file)
 
 if __name__ == '__main__':
-    model_path = './models/model_20241105_005129.pth'
+    model_path = './models/epoch=2.pth'
     app = QApplication(sys.argv)
     model = load_model(model_path)
     window = MainWindow(model)
