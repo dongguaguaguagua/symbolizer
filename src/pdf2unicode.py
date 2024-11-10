@@ -1,5 +1,6 @@
 import fitz  # PyMuPDF
 
+
 def extract_text_from_pdf(file_path):
     # 打开 PDF 文件
     doc = fitz.open(file_path)
@@ -12,6 +13,7 @@ def extract_text_from_pdf(file_path):
 
     doc.close()
     return text
+
 
 def extract_text_as_unicode_escaped(file_path):
     doc = fitz.open(file_path)
@@ -28,7 +30,8 @@ def extract_text_as_unicode_escaped(file_path):
     doc.close()
     return unicode_text
 
-# 示例使用
-pdf_path = "/Users/hzy/Downloads/test-7.pdf"
-unicode_text = extract_text_from_pdf(pdf_path)
-print(unicode_text)
+
+if __name__ == "__main__":
+    pdf_path = "/Users/hzy/Downloads/test-7.pdf"
+    unicode_text = extract_text_from_pdf(pdf_path)
+    print(unicode_text)
