@@ -1,35 +1,12 @@
-import os
 import torch
 import numpy as np
-import torch.nn.functional as F
+import torch.nn as nn
 import torch.optim as optim
+import torch.nn.functional as F
 from tqdm import tqdm
-from datetime import datetime
-from cnn import SimpleCNN, unpickle, get_loader, get_accuracy
-from resnet import HASYv2ResNet, test_model
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-# Load and process the data
-print("loading data...")
-HASYv2 = unpickle("./data/HASYv2")
-data = np.array(HASYv2["data"])
-labels = np.array(HASYv2["labels"])
-
-print("processing data...")
-train_loader, test_loader = get_loader(data, labels)
-
-num_classes = len(np.unique(labels)) + 1
-
-# Load the teacher model
-teacher_model = HASYv2ResNet(num_classes)
-teacher_model.load_state_dict(torch.load("./models/resnet_20241109_132056.pth"))
-teacher_model.eval()  # Set teacher to evaluation mode
-teacher_model.to(device)
-
-# Define SimpleCNN model as student
-student_model = SimpleCNN(num_classes)
-student_model.to(device)
+from cnn import StudentCNN
+from common import load_data, get_loader, test_model, save_model, device
+from resnet import HASYv2ResNet
 
 
 # Distillation loss function
@@ -48,10 +25,6 @@ def distillation_loss(
 
     # Combined loss
     return alpha * soft_loss + (1 - alpha) * hard_loss
-
-
-# Optimizer for the student model
-optimizer = optim.Adam(student_model.parameters(), lr=0.001)
 
 
 # Training function for distillation
@@ -90,23 +63,39 @@ def distill_student_model(
     )
 
 
-# Training loop for distillation
-num_epochs = 10
-for epoch in range(num_epochs):
-    distill_student_model(
-        epoch,
-        student_model,
-        teacher_model,
-        train_loader,
-        optimizer,
-        num_epochs=num_epochs,
-    )
-    test_model(student_model, test_loader)
+if __name__ == "__main__":
+    print("loading data...")
+    data, labels = load_data("./data/HASYv2")
 
-model_directory = "./models"
-current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-# Save the distilled student model
-distilled_model_filename = f"simpleCNN_distilled_{current_time}.pth"
-distilled_model_path = os.path.join(model_directory, distilled_model_filename)
-torch.save(student_model.state_dict(), distilled_model_path)
-print(f"Distilled model saved as: {distilled_model_filename}")
+    print("processing data...")
+    train_loader, test_loader = get_loader(data, labels)
+    num_classes = len(np.unique(labels)) + 1
+
+    # Load the teacher model
+    teacher_model = HASYv2ResNet(num_classes)
+    teacher_model.load_state_dict(torch.load("./models/resnet_20241110_041804.pth"))
+    teacher_model.eval()  # Set teacher to evaluation mode
+    teacher_model.to(device)
+
+    # Define SimpleCNN model as student
+    student_model = StudentCNN(num_classes)
+    student_model.to(device)
+
+    # Optimizer for the student model
+    optimizer = optim.Adam(student_model.parameters(), lr=0.001)
+    criterion = nn.CrossEntropyLoss()
+
+    # Training loop for distillation
+    num_epochs = 15
+    for epoch in range(num_epochs):
+        distill_student_model(
+            epoch,
+            student_model,
+            teacher_model,
+            train_loader,
+            optimizer,
+            num_epochs=num_epochs,
+        )
+        test_model(student_model, test_loader, criterion)
+
+    save_model(student_model, "simpleCNN_distilled")
