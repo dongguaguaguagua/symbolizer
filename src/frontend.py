@@ -5,24 +5,13 @@ import torch.nn as nn
 import torch.nn.functional as F
 import json
 import base64
-from PyQt5.QtWidgets import (
-    QListWidgetItem,
-    QListWidget,
-    QApplication,
-    QMainWindow,
-    QWidget,
-    QVBoxLayout,
-    QPushButton,
-    QLabel,
-    QHBoxLayout,
-)
-from PyQt5.QtGui import QPainter, QPen, QImage, QPixmap
+from PyQt5.QtWidgets import QListWidgetItem, QListWidget, QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton, QLabel, QHBoxLayout
+from PyQt5.QtGui import QPainter, QPen, QImage
 from PyQt5.QtCore import Qt, QPoint
 from PyQt5.QtSvg import QSvgWidget
 from torchvision import transforms
 from PIL import Image
 from cnn import SimpleCNN, EfficientNetB0Model
-
 
 class Canvas(QWidget):
     def __init__(self):
@@ -112,7 +101,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("LaTeX symbol recognize")
 
     def predict(self):
-        img_path = "./imgs/test.jpg"
+        img_path = './imgs/test.jpg'
         mapping = load_mapping()
         self.canvas.save_image(img_path)
         img_tensor = self.canvas.get_image(img_path)
@@ -172,22 +161,21 @@ class MainWindow(QMainWindow):
 
 
 def load_model(model_path):
-    # model = SimpleCNN()
-    model = EfficientNetB0Model(370)
+    model = SimpleCNN(370)
+    # model = EfficientNetB0Model(370)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = model.to(device)
     model.load_state_dict(torch.load(model_path))
     model.eval()
     return model
 
-
 def load_mapping():
     with open("./mappings/mappings.json", "r", encoding="utf-8") as file:
         return json.load(file)
 
-
-if __name__ == "__main__":
-    model_path = "./models/EfficientNetB0-epoch10.pth"
+if __name__ == '__main__':
+    # model_path = './models/EfficientNetB0-epoch10.pth'
+    model_path = './models/model_20250301_165536.pth'
     app = QApplication(sys.argv)
     model = load_model(model_path)
     window = MainWindow(model)
