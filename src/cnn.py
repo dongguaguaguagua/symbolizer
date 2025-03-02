@@ -5,49 +5,33 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import models
-from torch.utils.data import DataLoader, TensorDataset, random_split
+from torch.utils.data import DataLoader, TensorDataset
 from datetime import datetime
 from tqdm import tqdm
 
-class EfficientNetB0Model(nn.Module):
-    def __init__(self, num_classes):
-        super(EfficientNetB0Model, self).__init__()
-        # 加载预训练的EfficientNet-B0模型
-        self.model = models.efficientnet_b0(weights = "EfficientNet_B0_Weights.DEFAULT")
-        # 替换最后一层以适应我们的分类任务
-        self.model.classifier[1] = nn.Linear(self.model.classifier[1].in_features, num_classes)
-
-    def forward(self, x):
-        return self.model(x)
-
+# SimpleCNN 类保持不变
 class SimpleCNN(nn.Module):
     def __init__(self, num_classes):
         super(SimpleCNN, self).__init__()
-
-        self.conv1 = nn.Conv2d(3, 32, kernel_size=3, stride=1, padding=1)  # 输入通道3，输出通道32
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1) # 输入通道32，输出通道64
-        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1) # 输入通道64，输出通道128
-
+        self.conv1 = nn.Conv2d(3, 32, kernel_size=3, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
+        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
         self.bn1 = nn.BatchNorm2d(32)
         self.bn2 = nn.BatchNorm2d(64)
         self.bn3 = nn.BatchNorm2d(128)
-
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        self.fc1 = nn.Linear(128 * 4 * 4, 512)  # 128通道 * 4 * 4是flatten后的大小
-        self.fc2 = nn.Linear(512, num_classes)   # 输出num_classes个类别
+        self.fc1 = nn.Linear(128 * 4 * 4, 512)
+        self.fc2 = nn.Linear(512, num_classes)
 
     def forward(self, x):
-        x = self.pool(F.relu(self.bn1(self.conv1(x))))  # 输出大小: [64, 32, 16, 16]
-        x = self.pool(F.relu(self.bn2(self.conv2(x))))  # 输出大小: [64, 64, 8, 8]
-        x = self.pool(F.relu(self.bn3(self.conv3(x))))  # 输出大小: [64, 128, 4, 4]
-
-        x = x.view(-1, 128 * 4 * 4)  # 展平成 [64, 128 * 4 * 4] 的形状
-
-        x = F.relu(self.fc1(x))      # 输出大小: [64, 512]
-        x = self.fc2(x)              # 输出大小: [64, 370]
-
+        x = self.pool(F.relu(self.bn1(self.conv1(x))))
+        x = self.pool(F.relu(self.bn2(self.conv2(x))))
+        x = self.pool(F.relu(self.bn3(self.conv3(x))))
+        x = x.view(-1, 128 * 4 * 4)
+        x = F.relu(self.fc1(x))
+        x = self.fc2(x)
         return x
+
 
 def unpickle(file):
     import pickle
@@ -55,115 +39,117 @@ def unpickle(file):
         dict = pickle.load(fo, encoding='bytes')
     return dict
 
-
-def get_accuracy(model, loader, topk):
-    model.eval()  # 切换到评估模式
+def get_accuracy(model, loader, topk=1):
+    model.eval()
     correct = 0
     total = 0
-
     with torch.no_grad():
         for inputs, labels in loader:
+            inputs, labels = inputs.to(device), labels.to(device)
             outputs = model(inputs)
             _, predicted = torch.topk(outputs.data, topk, dim=1)
             total += labels.size(0)
             for i in range(labels.size(0)):
                 if labels[i] in predicted[i]:
                     correct += 1
-    accuracy = correct / total
-    return accuracy
+    return correct / total
 
+def train_one_file(model, criterion, optimizer, file_path, batch_size=64):
+    # 加载单个 .pt 文件
+    data = torch.load(file_path)
+    images = data['data']
+    labels = data['labels'].long()  # 转换为 torch.long
+    # 创建 DataLoader
+    dataset = TensorDataset(images, labels)
+    loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-# 定义训练函数
-def train_model(model, train_loader, test_loader, criterion, optimizer, num_epochs=10):
-    for epoch in range(num_epochs):
-        model.train()
-        running_loss = 0.0
-        correct = 0
-        total = 0
+    model.train()
+    running_loss = 0.0
+    correct = 0
+    total = 0
 
-        for inputs, labels in tqdm(train_loader, desc=f"Epoch {epoch+1}/{num_epochs}", unit="batch"):
+    for inputs, labels in tqdm(loader, desc=f"Training {os.path.basename(file_path)}", unit="batch"):
+        inputs, labels = inputs.to(device), labels.to(device)
+        optimizer.zero_grad()
+        outputs = model(inputs)
+        # print(inputs.shape)
+        # print(outputs.shape)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+
+        running_loss += loss.item() * inputs.size(0)
+        _, predicted = torch.max(outputs, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+    epoch_loss = running_loss / total
+    epoch_accuracy = correct / total
+    return epoch_loss, epoch_accuracy
+
+def validate_model(model, criterion, test_loader):
+    model.eval()
+    test_loss = 0.0
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for inputs, labels in test_loader:
             inputs, labels = inputs.to(device), labels.to(device)
-
-            optimizer.zero_grad()
-            # inputs.shape: [64, 3, 32, 32]
-            # outputs.shape:[64, 370]
             outputs = model(inputs)
-
             loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
-
-            running_loss += loss.item() * inputs.size(0)
+            test_loss += loss.item() * inputs.size(0)
             _, predicted = torch.max(outputs, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
-        epoch_loss = running_loss / total
-        epoch_accuracy = correct / total
-        print(f"Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss:.4f}, Accuracy: {epoch_accuracy:.4f}")
+    test_loss /= total
+    test_accuracy = correct / total
+    return test_loss, test_accuracy
 
-        # 验证模型性能
-        model.eval()
-        test_loss = 0.0
-        correct = 0
-        total = 0
-        with torch.no_grad():
-            # incorrect_labels = []
-            for inputs, labels in test_loader:
-                inputs, labels = inputs.to(device), labels.to(device)
-                outputs = model(inputs)
-                loss = criterion(outputs, labels)
-                test_loss += loss.item() * inputs.size(0)
-                _, predicted = torch.max(outputs, 1)
-                total += labels.size(0)
-                correct += (predicted == labels).sum().item()
-
-                # incorrect_mask = (predicted != labels)
-                # incorrect_labels.extend(labels[incorrect_mask].cpu().numpy())
-
-            # print("Incorrect Labels:", incorrect_labels)
-
-        test_loss /= total
-        test_accuracy = correct / total
-        print(f"Validation Loss: {test_loss:.4f}, Validation Accuracy: {test_accuracy:.4f}")
-
-def get_loader(data, labels):
-    data = np.transpose(data, (3, 2, 0, 1)) # 变为 (168233, 3, 32, 32)
-
-    data = torch.tensor(data, dtype=torch.float32)
-    labels = torch.tensor(labels.squeeze(), dtype=torch.long)
-
-    dataset = TensorDataset(data, labels)
-
-    train_size = int(0.8 * len(dataset))
-    test_size = len(dataset) - train_size
-    train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
-
-    batch_size = 64
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
-    return train_loader, test_loader
-
-if __name__ == '__main__':
-    print("loading data...")
-    HASYv2 = unpickle("./data/HASYv2")
-    data = HASYv2['data'] # (32, 32, 3, 168233)
-    labels = HASYv2['labels'] # (168233, 1)
-    print("processing data...")
-    train_loader, test_loader = get_loader(data, labels)
-    print("training model...")
-    model = SimpleCNN(370)
-    # model = EfficientNetB0Model(370)
+if __name__ == "__main__":
+    print("Training model...")
+    num_classes = 370
+    model = SimpleCNN(num_classes)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = model.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
-    train_model(model, train_loader, test_loader, criterion, optimizer, num_epochs=1)
 
+    # 数据路径
+    data_dir = "../data/augmented_data/"  # 替换为你的数据目录
+    train_files = [f for f in os.listdir(data_dir) if f.startswith("train_") and f.endswith("_set.pt")]
+    test_file = os.path.join(data_dir, "test_set.pt")
+
+    # 加载测试集
+    test_data = torch.load(test_file)
+    test_images = test_data['data']
+    test_labels = test_data['labels'].long()  # 转换为 torch.long
+    test_dataset = TensorDataset(test_images, test_labels)
+    test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
+
+    # 训练参数
+    num_epochs = 1  # 每个文件训练的epoch数
+    batch_size = 64
+
+    # 开始训练
+    for epoch in range(num_epochs):
+        print(f"\nEpoch {epoch+1}/{num_epochs}")
+
+        # 逐个文件训练
+        for train_file in train_files:
+            file_path = os.path.join(data_dir, train_file)
+            loss, accuracy = train_one_file(model, criterion, optimizer, file_path, batch_size)
+            print(f"File: {train_file}, Loss: {loss:.4f}, Accuracy: {accuracy:.4f}")
+
+        # 在测试集上验证
+        test_loss, test_accuracy = validate_model(model, criterion, test_loader)
+        print(f"Validation Loss: {test_loss:.4f}, Validation Accuracy: {test_accuracy:.4f}")
+
+    # 保存模型
     current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-    model_directory = './models'
+    model_directory = '../models'
     model_filename = f'model_{current_time}.pth'
     full_model_path = os.path.join(model_directory, model_filename)
     os.makedirs(model_directory, exist_ok=True)
     torch.save(model.state_dict(), full_model_path)
-    print(f"model saved as: {model_filename}")
+    print(f"Model saved as: {model_filename}")
