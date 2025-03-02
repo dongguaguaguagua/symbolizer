@@ -15,6 +15,7 @@ def print_img(data, n):
     image = data[n]
     # print(symbols[n])
     image_np = 1 - image.permute(1, 2, 0).numpy() * 255 # 转化为NHWC顺序
+    print(image_np)
     plt.imshow(image_np)
     plt.axis("off")
     plt.show()
@@ -30,10 +31,11 @@ def print_img_from_label(label):
 if __name__ == "__main__":
     print("loading data...")
     loaded = torch.load('../data/augmented_data/train_1_set.pt')
-    # data, labels = load_data("./data/HASYv2")
     data = loaded['data']      # shape: [100000, 3, 32, 32]
     labels = loaded['labels']  # shape: [100000]
-    n = 999
+
+    n = 939
+
     print(labels[n])
     print_img(data, n)
     # print_img_from_label(174)
