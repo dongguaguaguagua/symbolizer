@@ -61,7 +61,7 @@ def split_and_merge_set(save_dir, output, size):
     print(f"Total samples: {len(merged_test_data)}")
 
 if __name__ == '__main__':
-    save_dir = "../data/augmented_data/"  # 替换为你的保存目录
+    save_dir = "../data/augmented_data/"
     target_parts = 10
     size = target_count // target_parts
     for i in range(1, target_parts):

@@ -27,8 +27,28 @@ def get_data_frequency_stat(data, output_csv="frequency_stat.csv"):
     df.to_csv(output_csv, index=False)
     print(f"数据已保存到 {output_csv}")
 
+def save_original_data_to_pt(data):
+    labels = data['labels']
+    data = data['data']
+    # 将 data 转换为 PyTorch 张量，并调整形状为 (168233, 3, 32, 32)
+    data = torch.tensor(data, dtype=torch.float32)  # 转换为张量
+    data = data.permute(3, 2, 0, 1)  # 从 (32, 32, 3, 168233) 调整为 (168233, 3, 32, 32)
+
+    # 将 labels 转换为 PyTorch 张量（如果不是的话）
+    labels = torch.tensor(labels) if not isinstance(labels, torch.Tensor) else labels
+
+    # 将数据和标签保存到一个 .pt 文件中
+    save_path = "../data/HASYv2.pt"
+    torch.save({
+        'data': data,
+        'labels': labels
+    }, save_path)
+
+    print(f"原始数据已保存到 {save_path}")
+
 if __name__ == '__main__':
     HASYv2 = unpickle("../data/HASYv2")
+
     labels = HASYv2['labels']
     data = HASYv2['data'] # (32, 32, 3, 168233)
 
@@ -43,7 +63,7 @@ if __name__ == '__main__':
             translate=(0.1, 0.1),
             scale=(0.5, 1),
             # interpolation=InterpolationMode.BICUBIC,  # 双线性插值
-            fill=(255,255,255)  # 填充背景色
+            fill=(255, 255, 255)  # 填充背景色
         ),
         transforms.ToTensor()
     ])
@@ -64,7 +84,7 @@ if __name__ == '__main__':
 
         # 先添加原始数据
         for img_data in original_data:
-            augmented_data.append(torch.from_numpy(img_data).float() / 255.0)
+            augmented_data.append(torch.from_numpy(img_data))
             augmented_labels.append(label)
 
         # 如果原始数据不足 target_count，则进行增强
@@ -100,14 +120,3 @@ if __name__ == '__main__':
         print(f"Saved {len(augmented_data)} samples for label {label} to {save_path}")
 
     print("Data augmentation completed!")
-
-# for i, img_data in enumerate(data):
-#     img = Image.fromarray((img_data.transpose(1, 2, 0) * 255).astype(np.uint8))  # 恢复为 (32, 32, 3)
-#     img.save(os.path.join(save_dir, f"{i}.png"))
-#     augmented_img = transform(img)
-#     augmented_img.save(os.path.join(save_dir, f"{i}_augmented.png"))
-
-#     if i >= 99:
-#         break
-
-# print("数据增强并保存完成。")
