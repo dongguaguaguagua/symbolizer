@@ -12,14 +12,15 @@ import numpy as np
 
 
 # Load dataset
-# loaded = torch.load('../data/augmented_data/train_1_set.pt')
-# data = loaded['data'][0:1000]  # shape: [n, 3, 32, 32]
-# labels = loaded['labels']
-start = 1000
-end = 2000
-HASYv2 = torch.load('../data/HASYv2.pt')
-data = HASYv2['data'][start : end]  # shape: [n, 3, 32, 32]
-labels = HASYv2['labels'][start : end]
+start = 0
+end = 1000
+loaded = torch.load('/Volumes/mySSD/dev/symbolizer/data/augmented_data/train_19_set.pt')
+data = loaded['data'][start : end]  # shape: [n, 3, 32, 32]
+labels = loaded['labels']
+
+# HASYv2 = torch.load('../data/HASYv2.pt')
+# data = HASYv2['data'][start : end]  # shape: [n, 3, 32, 32]
+# labels = HASYv2['labels'][start : end]
 
 # Load mappings
 with open('../mappings/mappings.json', 'r') as f:

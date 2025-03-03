@@ -175,7 +175,7 @@ def load_mapping():
 
 if __name__ == '__main__':
     # model_path = './models/EfficientNetB0-epoch10.pth'
-    model_path = '../models/model_20250302_115058.pth'
+    model_path = '../models/model_20250303_183903.pth'
     app = QApplication(sys.argv)
     model = load_model(model_path)
     window = MainWindow(model)

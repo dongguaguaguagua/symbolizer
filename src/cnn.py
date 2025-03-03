@@ -115,9 +115,10 @@ if __name__ == "__main__":
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-    # 数据路径
-    data_dir = "../data/augmented_data/"  # 替换为你的数据目录
-    train_files = [f for f in os.listdir(data_dir) if f.startswith("train_") and f.endswith("_set.pt")]
+    # 训练数据路径
+    data_dir = "../data/augmented_data/"
+    # train_files = [f for f in os.listdir(data_dir) if f.startswith("train_") and f.endswith("_set.pt")]
+    train_files = [f for f in os.listdir(data_dir) if f.startswith("HASYv2") and f.endswith(".pt")]
     test_file = os.path.join(data_dir, "test_set.pt")
 
     # 加载测试集

@@ -14,7 +14,7 @@ from natsort import natsorted
 def print_img(data, n):
     image = data[n]
     # print(symbols[n])
-    image_np = 1 - image.permute(1, 2, 0).numpy() * 255 # 转化为NHWC顺序
+    image_np = image.permute(1, 2, 0).numpy() # 转化为NHWC顺序
     print(image_np)
     plt.imshow(image_np)
     plt.axis("off")
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     labels = loaded['labels']  # shape: [100000]
 
     n = 939
-
+    print(data[n][0][0][0] < 0.004 and data[n][0][0][0] > 0.0038)
     print(labels[n])
     print_img(data, n)
     # print_img_from_label(174)
