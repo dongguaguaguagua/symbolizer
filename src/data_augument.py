@@ -10,7 +10,7 @@ import json
 from frontend import *
 import pandas as pd
 
-target_count = 1000
+target_count = 10000
 
 def get_data_frequency_stat(data, output_csv="frequency_stat.csv"):
     labels = data['labels']
@@ -94,11 +94,9 @@ if __name__ == '__main__':
                 for img_data in original_data:
                     if len(augmented_data) >= target_count:
                         break
-
                     # 转换为 PIL 图像进行增强
                     img = Image.fromarray((img_data.transpose(1, 2, 0) * 255).astype(np.uint8))
                     augmented_img = transform(img)  # 已经是 tensor 格式
-
                     augmented_data.append(augmented_img)
                     augmented_labels.append(label)
 

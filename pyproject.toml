@@ -16,6 +16,7 @@ dependencies = [
     "pymupdf>=1.24.13",
     "natsort>=8.4.0",
     "tqdm>=4.67.0",
+    "pandas>=2.2.3",
 ]
 readme = "README.md"
 requires-python = ">= 3.12"
