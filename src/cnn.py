@@ -54,7 +54,7 @@ def get_accuracy(model, loader, topk=1):
                     correct += 1
     return correct / total
 
-def train_one_file(model, criterion, optimizer, file_path, batch_size=64):
+def train_one_file(model, criterion, optimizer, file_path, batch_size, device):
     # 加载单个 .pt 文件
     data = torch.load(file_path)
     images = data['data']
@@ -87,7 +87,7 @@ def train_one_file(model, criterion, optimizer, file_path, batch_size=64):
     epoch_accuracy = correct / total
     return epoch_loss, epoch_accuracy
 
-def validate_model(model, criterion, test_loader):
+def validate_model(model, criterion, test_loader, device):
     model.eval()
     test_loss = 0.0
     correct = 0
@@ -139,11 +139,11 @@ if __name__ == "__main__":
         # 逐个文件训练
         for train_file in train_files:
             file_path = os.path.join(data_dir, train_file)
-            loss, accuracy = train_one_file(model, criterion, optimizer, file_path, batch_size)
+            loss, accuracy = train_one_file(model, criterion, optimizer, file_path, batch_size, device)
             print(f"File: {train_file}, Loss: {loss:.4f}, Accuracy: {accuracy:.4f}")
 
         # 在测试集上验证
-        test_loss, test_accuracy = validate_model(model, criterion, test_loader)
+        test_loss, test_accuracy = validate_model(model, criterion, test_loader, device)
         print(f"Validation Loss: {test_loss:.4f}, Validation Accuracy: {test_accuracy:.4f}")
 
     # 保存模型
