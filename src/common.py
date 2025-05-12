@@ -5,7 +5,6 @@ import numpy as np
 from tqdm import tqdm
 from datetime import datetime
 from torch.utils.data import DataLoader, TensorDataset, random_split
-from torch.utils.data import DataLoader, TensorDataset
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model_directory = "./models"
@@ -27,7 +26,7 @@ def load_data(data_path):
     return _data, _labels
 
 
-def get_loader(data, labels):
+def get_loader(data, labels, batch_size=64, train_ratio=0.8):
     data = np.transpose(data, (3, 2, 0, 1))  # 变为 (168233, 3, 32, 32)
 
     data = torch.tensor(data, dtype=torch.float32)
@@ -35,18 +34,17 @@ def get_loader(data, labels):
 
     dataset = TensorDataset(data, labels)
 
-    train_size = int(0.8 * len(dataset))
+    train_size = int(train_ratio * len(dataset))
     test_size = len(dataset) - train_size
     train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
 
-    batch_size = 64
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
     return train_loader, test_loader
 
 
 def save_model(model, path="model"):
-    current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+    current_time = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
     model_filename = f"{path}_{current_time}.pth"
     full_model_path = os.path.join(model_directory, model_filename)
     os.makedirs(model_directory, exist_ok=True)
@@ -55,7 +53,7 @@ def save_model(model, path="model"):
 
 
 # Training function
-def train_model(epoch, model, train_loader, criterion, optimizer, num_epochs=10):
+def train_model(model, train_loader, criterion, optimizer, epoch=0, num_epochs=10):
     model.train()
     running_loss = 0.0
     correct = 0

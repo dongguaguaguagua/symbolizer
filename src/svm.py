@@ -1,4 +1,3 @@
-import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score
@@ -16,7 +15,7 @@ if __name__ == "__main__":
     # 将每个图像展平为一维向量
     num_samples = data.shape[2]
     flattened_data = data.reshape(num_samples, -1)
-    print(f"sample numbers:", num_samples)
+    print("sample numbers:", num_samples)
 
     print("split dataset...")
     # 划分训练集和测试集
