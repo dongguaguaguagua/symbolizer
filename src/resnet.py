@@ -32,19 +32,21 @@ if __name__ == "__main__":
     batch_size = 64
     learning_rate = 0.001
 
+    train_loss_history = []
+    train_accu_history = []
+    test_loss_history = []
+    test_accu_history = []
+
     print("loading data...")
     data, labels = load_data("./data/HASYv2")
-
-    print("processing data...")
+    print("Creating data loaders...")
     train_loader, test_loader = get_loader(data, labels, batch_size=batch_size)
     print(f"Number of classes: {num_classes}")
 
     # Initialize the model
-    print("initializing model...")
-    model = HASYv2ResNet(num_classes)
-
-    print(f"Training on {device}")
-    model = model.to(device)
+    print(f"Initializing ResNet34 with {num_classes} classes...")
+    model = HASYv2ResNet(num_classes).to(device)
+    print(f"Model will train on device: {device}")
 
     # Define loss and optimizer
     criterion = nn.CrossEntropyLoss()
@@ -53,8 +55,15 @@ if __name__ == "__main__":
     # Train and evaluate the model
     for epoch in range(num_epochs):
         print(f"\nEpoch {epoch+1}/{num_epochs}")
-        train_model(model, train_loader, criterion, optimizer)
-        test_model(model, test_loader, criterion)
+        train_loss, train_accu = train_model(model, train_loader, criterion, optimizer, epoch=epoch, num_epochs=num_epochs)
+        test_loss, test_accu = test_model(model, test_loader, criterion)
+        train_loss_history.append(train_loss)
+        train_accu_history.append(train_accu)
+        test_loss_history.append(test_loss)
+        test_accu_history.append(test_accu)
 
     # Save the model
     save_model(model, "resnet")
+    print("Training complete. Model saved.")
+    print(train_loss_history, test_loss_history)
+    print(train_accu_history, test_accu_history)

@@ -34,6 +34,11 @@ if __name__ == "__main__":
     batch_size = 64
     learning_rate = 0.001
 
+    train_loss_history = []
+    train_accu_history = []
+    test_loss_history = []
+    test_accu_history = []
+
     # Load and prepare data
     print("Loading data...")
     data, labels = load_data("./data/HASYv2")
@@ -52,8 +57,14 @@ if __name__ == "__main__":
     # Training loop
     for epoch in range(num_epochs):
         print(f"\nEpoch {epoch+1}/{num_epochs}")
-        train_model(model, train_loader, criterion, optimizer)
-        test_model(model, test_loader, criterion)
+        train_loss, train_accu = train_model(model, train_loader, criterion, optimizer, epoch=epoch, num_epochs=num_epochs)
+        test_loss, test_accu = test_model(model, test_loader, criterion)
+        train_loss_history.append(train_loss)
+        train_accu_history.append(train_accu)
+        test_loss_history.append(test_loss)
+        test_accu_history.append(test_accu)
 
     save_model(model, "densenet121")
     print("Training complete. Model saved.")
+    print(train_loss_history, test_loss_history)
+    print(train_accu_history, test_accu_history)
