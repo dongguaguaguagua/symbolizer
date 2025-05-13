@@ -5,6 +5,8 @@ import numpy as np
 from tqdm import tqdm
 from datetime import datetime
 from torch.utils.data import DataLoader, TensorDataset, random_split
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model_directory = "./models"
@@ -82,6 +84,7 @@ def train_model(model, train_loader, criterion, optimizer, epoch=0, num_epochs=1
     print(
         f"Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss:.4f}, Accuracy: {epoch_accuracy:.4f}"
     )
+    return epoch_loss, epoch_accuracy
 
 
 # Testing function
@@ -104,3 +107,42 @@ def test_model(model, test_loader, criterion):
     test_loss /= total
     test_accuracy = correct / total
     print(f"Validation Loss: {test_loss:.4f}, Validation Accuracy: {test_accuracy:.4f}")
+    return test_loss, test_accuracy
+
+
+def plot_map(mAP):
+    try:
+        x = list(range(len(mAP)))
+        plt.plot(x, mAP, label='mAp')
+        plt.xlabel('epoch')
+        plt.ylabel('mAP')
+        plt.title('Eval mAP')
+        plt.xlim(0, len(mAP))
+        plt.legend(loc='best')
+        plt.savefig('./mAP.png')
+        plt.close()
+        print("successful save mAP curve!")
+    except Exception as e:
+        print(e)
+
+
+def vitualize_loss(train_loss, val_loss):
+    # 示例数据（你可以替换成自己的数据）
+    epochs = np.arange(1, len(train_loss) + 1)
+
+    # 设置Seaborn风格
+    sns.set(style="whitegrid")
+
+    # 绘制损失曲线
+    plt.figure(figsize=(10, 5))
+    sns.lineplot(x=epochs, y=train_loss, label='Train Loss', marker='o')
+    sns.lineplot(x=epochs, y=val_loss, label='Validation Loss', marker='s')
+
+    # 图表标题和标签
+    plt.title("Training and Validation Loss over Epochs")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.legend()
+
+    # 显示图像
+    plt.show()
