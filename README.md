@@ -1,8 +1,30 @@
-# Symbolizer: LaTeX Symbol Recognize
+<div align="center">
+<picture>
+  <source
+    srcset="./imgs/headline-logo-dark.svg"
+    media="(prefers-color-scheme: dark)"
+  />
+  <source
+    srcset="./imgs/headline-logo-light.svg"
+    media="(prefers-color-scheme: light)"
+  />
+  <img src="./imgs/headline-logo-light.svg" alt="headline-logo" height="150"/>
+</picture>
+</div>
+
+# LaTeX Symbol Recognize
 
 Symbolizer is a modern solution for handwritten LaTeX symbols recognition, including static websites and mobile apps. You can recognize your handwritten symbols in any devices.
 
-The project is inspired by [Detexify](http://detexify.kirelabs.org/) and [Detypify](https://detypify.quarticcat.com/). However, Detexify uses [backend server](https://github.com/kirel/detexify-hs-backend), making it slow and inconvenient. Symbolizer uses WASM, the whole inference is completely offline. Powered by ONNX runtime, the inference is extremely fast. Every recognition happens in milliseconds.
+The project is inspired by [Detexify](http://detexify.kirelabs.org/) and [Detypify](https://detypify.quarticcat.com/). However, Detexify uses [backend server](https://github.com/kirel/detexify-hs-backend) and requires network connection. Symbolizer uses WASM, allowing completely offline inference. Powered by ONNX runtime, the inference is extremely fast. Every recognition happens in milliseconds.
+
+## Features
+
+- [x] Offline inference
+- [x] Tiny model ([ONNX](#download-onnx-model) 1.6MB)
+- [x] Extremely fast recognition
+- [x] Multiple platforms support, _draw_ on any devices
+- [x] Recognize [396 symbols](https://symbolizer.melonhu.cn/symbols).
 
 ## Frontends
 
@@ -48,7 +70,7 @@ Evaluation accuracy on test data:
 | 4         | 0.983318 |
 | 5         | 0.987984 |
 
-ONNX model download:
+### Download ONNX model:
 
 | Model                                                                                      | size  | Description                                         |
 | ------------------------------------------------------------------------------------------ | ----- | --------------------------------------------------- |
@@ -96,7 +118,7 @@ npm run build
 npx serve out
 ```
 
-## Build mobile app
+### Build mobile app
 
 Mobile app requires Flutter and full Android toolchain (sdk=34).
 
@@ -109,7 +131,7 @@ flutter build apk --release
 flutter install
 ```
 
-## Build workers
+### Build workers
 
 To build workers, you need to create a D1 database on [Cloudflare](https://dash.cloudflare.com/workers/d1).
 
