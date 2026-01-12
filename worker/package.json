@@ -1,0 +1,14 @@
+{
+    "private": true,
+    "name": "latex-worker",
+    "version": "0.1.0",
+    "type": "module",
+    "scripts": {
+        "deploy": "wrangler deploy",
+        "dev": "wrangler dev"
+    },
+    "devDependencies": {
+        "wrangler": "^3.114.16",
+        "esbuild": "0.17.19"
+    }
+}

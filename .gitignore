@@ -9,17 +9,14 @@ wheels/
 # venv
 .venv
 data/
-models/
-*.onnx
 *.pth
 .DS_Store
 
+node_modules/
+.wrangler/
 lib64
-lib/
 lib64/
 include/
 bin/
 share/
-models/
-
-*.sublime-*
+/models/

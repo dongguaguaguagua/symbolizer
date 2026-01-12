@@ -1,0 +1,8 @@
+name = "latex-symbol-collector"
+main = "index.ts"
+compatibility_date = "2025-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "symbolizer"
+database_id = "f7eb7945-6dae-41f4-a339-efac5327e882"

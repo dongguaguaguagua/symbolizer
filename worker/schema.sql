@@ -1,0 +1,6 @@
+CREATE TABLE samples (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  label TEXT NOT NULL,
+  image BLOB NOT NULL,
+  created_at INTEGER NOT NULL
+);
