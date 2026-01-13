@@ -28,7 +28,7 @@ export default function Preview32({ gray }: { gray: Uint8Array | null }) {
             ref={ref}
             width={32}
             height={32}
-            className="border bg-white w-24 h-24 sm:w-32 sm:h-32 image-rendering-pixelated"
+            className="border bg-white dark:bg-gray-900 w-24 h-24 sm:w-32 sm:h-32 image-rendering-pixelated"
         />
     );
 }

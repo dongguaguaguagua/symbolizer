@@ -14,8 +14,12 @@ export default function DrawCanvas({
         const c = ref.current!;
         const ctx = c.getContext("2d")!;
 
+        // **始终用模型期望的颜色绘制**
+        const bg = "#fff";
+        const fg = "#000";
+
         const clear = () => {
-            ctx.fillStyle = "#fff";
+            ctx.fillStyle = bg;
             ctx.fillRect(0, 0, 256, 256);
         };
 
@@ -24,7 +28,7 @@ export default function DrawCanvas({
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
         ctx.lineWidth = 12;
-        ctx.strokeStyle = "#000";
+        ctx.strokeStyle = fg;
 
         let drawing = false;
         let lx = 0,
@@ -102,6 +106,7 @@ export default function DrawCanvas({
             drawing = false;
             onChange(downsampleAutoCrop(c));
         };
+
         c.addEventListener("mousedown", onMouseDown);
         c.addEventListener("mouseup", onMouseUp);
         c.addEventListener("mouseleave", onMouseLeave);
@@ -122,7 +127,6 @@ export default function DrawCanvas({
         };
     }, [onChange]);
 
-    // 响应清空信号
     useEffect(() => {
         const c = ref.current!;
         const ctx = c.getContext("2d")!;
@@ -135,7 +139,13 @@ export default function DrawCanvas({
             ref={ref}
             width={256}
             height={256}
-            className="border rounded bg-white w-full max-w-[256px] aspect-square"
+            className="
+            border rounded
+            bg-white
+            dark:invert dark:brightness-90
+            border-gray-300 dark:border-gray-700
+            w-full max-w-[256px] aspect-square
+        "
         />
     );
 }

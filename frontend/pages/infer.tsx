@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import DrawCanvas from "@/components/DrawCanvas";
 import { inferTop5, preloadRuntimeAndModel } from "@/lib/onnx";
 import SvgSymbol from "@/components/SvgSymbol";
+import { useI18n } from "@/lib/i18n";
 
 type Mapping = {
     symbol: string;
@@ -32,6 +33,7 @@ function CopyableMono({
     tone?: "blue" | "green";
 }) {
     const [copied, setCopied] = useState(false);
+    const { t } = useI18n();
 
     const color =
         tone === "blue"
@@ -78,19 +80,22 @@ function CopyableMono({
                     "z-50",
                 ].join(" ")}
             >
-                {copied ? "复制成功" : "点击复制"}
+                {copied ? t("copySuccess") : t("copy")}
             </span>
         </button>
     );
 }
 
 export default function InferPage() {
+    const { t } = useI18n();
+
     const [top5, setTop5] = useState<{ i: number; v: number }[]>([]);
     const [inferLoading, setInferLoading] = useState(false);
     const [bootLoading, setBootLoading] = useState(true);
 
     const [mappings, setMappings] = useState<Record<string, Mapping>>({});
     const [clearSignal, setClearSignal] = useState(0);
+    type InferStatus = "loading" | "infering" | "ready";
 
     // 页面加载：先拉 mappings + 预热 ORT/模型
     useEffect(() => {
@@ -135,44 +140,50 @@ export default function InferPage() {
         setClearSignal((x) => x + 1);
     };
 
-    const statusText = useMemo(() => {
-        if (bootLoading) return "正在加载模型与运行时（首次会稍慢）…";
-        if (inferLoading) return "正在推理…";
-        return "就绪";
+    const statusKey = useMemo<InferStatus>(() => {
+        if (bootLoading) return "loading";
+        if (inferLoading) return "infering";
+        return "ready";
     }, [bootLoading, inferLoading]);
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-8">
             <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
                 {/* 左侧：画板 */}
-                <div className="bg-white rounded-xl shadow p-6">
+                <div className="bg-white dark:bg-gray-900 rounded-xl shadow p-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h1 className="text-xl font-semibold">手写符号输入</h1>
+                        <h1 className="text-xl font-semibold  text-gray-900 dark:text-gray-100">
+                            {t("inferTitle")}
+                        </h1>
                         <button
                             onClick={clearCanvas}
-                            className="px-3 py-2 text-sm bg-gray-900 text-white rounded hover:bg-gray-800"
+                            className="px-3 py-2 text-sm bg-gray-900 text-white  dark:bg-gray-50 dark:text-black rounded hover:bg-gray-800"
                         >
-                            清空画板
+                            {t("clear")}
                         </button>
                     </div>
 
                     <DrawCanvas onChange={onChange} clearSignal={clearSignal} />
 
-                    <p className="mt-3 text-sm text-gray-500">松开鼠标识别</p>
+                    <p className="mt-3 text-sm text-gray-500">
+                        {t("drawHint")}
+                    </p>
                 </div>
 
                 {/* 右侧：结果 */}
-                <div className="bg-white rounded-xl shadow p-6">
+                <div className="bg-white dark:bg-gray-900 rounded-xl shadow p-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-xl font-semibold">预测结果</h2>
+                        <h2 className="text-xl font-semibold  text-gray-900 dark:text-gray-100">
+                            {t("inferRes")}
+                        </h2>
                         <div className="text-sm text-gray-500">
-                            {statusText}
+                            {t(statusKey)}
                         </div>
                     </div>
 
                     {top5.length === 0 ? (
                         <div className="text-gray-400 text-sm">
-                            请在左侧写一个符号
+                            {t("inferHint")}
                         </div>
                     ) : (
                         <ul className="space-y-3">
@@ -189,7 +200,7 @@ export default function InferPage() {
                                         <div className="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
                                             {/* 左侧：文本 */}
                                             <div className="min-w-0">
-                                                <div className="font-medium">
+                                                <div className="font-medium  text-gray-900 dark:text-gray-100">
                                                     #{p.i}
                                                 </div>
 
