@@ -14,7 +14,7 @@
 
 # LaTeX Symbol Recognize
 
-Symbolizer is a modern solution for handwritten LaTeX symbols recognition, including static websites and mobile apps. You can recognize your handwritten symbols in any devices.
+Symbolizer is a modern solution for handwritten LaTeX symbols recognition, including static websites and mobile apps. You can recognize your handwritten symbols on any devices.
 
 The project is inspired by [Detexify](http://detexify.kirelabs.org/) and [Detypify](https://detypify.quarticcat.com/). However, Detexify uses [backend server](https://github.com/kirel/detexify-hs-backend) and requires network connection. Symbolizer uses WASM, allowing completely offline inference. Powered by ONNX runtime, the inference is extremely fast. Every recognition happens in milliseconds.
 
@@ -166,3 +166,4 @@ If you found any mistakes in symbol recognition, you can visit [submit page](htt
 
 - https://detexify.kirelabs.org/classify.html for initial inspiration.
 - https://detypify.quarticcat.com for website and model design.
+- https://ar5iv.labs.arxiv.org/html/1701.08380 The training dataset.
