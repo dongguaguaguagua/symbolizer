@@ -26,7 +26,10 @@ const dict = {
 
         // infer
         inferTitle: "画出您想识别的符号",
-        loading: "正在加载模型与运行时（首次会稍慢）…",
+        loading: "加载中…",
+        waiting: "等待中",
+        model: "模型",
+        runtime: "运行时",
         inferHint: "请在左侧写一个符号",
         infering: "正在推理…",
         drawHint: "松开鼠标识别",
@@ -74,7 +77,10 @@ const dict = {
 
         // infer
         inferTitle: "Draw to recognize",
-        loading: "Loading model and runtime (first time may take longer)…",
+        loading: "Loading…",
+        waiting: "Waiting",
+        model: "Model",
+        runtime: "Runtime",
         inferHint: "Please draw a symbol on the left",
         infering: "Running inference…",
         drawHint: "Release the mouse to recognize",

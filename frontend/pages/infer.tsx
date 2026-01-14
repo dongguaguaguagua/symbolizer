@@ -4,6 +4,9 @@ import { inferTop5, preloadRuntimeAndModel } from "@/lib/onnx";
 import SvgSymbol from "@/components/SvgSymbol";
 import { useI18n } from "@/lib/i18n";
 import CopyableMono from "@/components/CopyableMono";
+import DownloadProgressLine, {
+    DownloadProgress,
+} from "@/components/DownloadProgressLine";
 
 type Mapping = {
     symbol: string;
@@ -32,20 +35,36 @@ export default function InferPage() {
     const [mappings, setMappings] = useState<Record<string, Mapping>>({});
     const [clearSignal, setClearSignal] = useState(0);
     type InferStatus = "loading" | "infering" | "ready";
-
+    const [onnxProgress, setOnnxProgress] = useState<DownloadProgress | null>(
+        null,
+    );
+    const [wasmProgress, setWasmProgress] = useState<DownloadProgress | null>(
+        null,
+    );
     // 页面加载：先拉 mappings + 预热 ORT/模型
     useEffect(() => {
         let cancelled = false;
 
         (async () => {
             try {
-                const [mp] = await Promise.all([
-                    fetch("/mappings.json", { cache: "force-cache" }).then(
-                        (r) => r.json(),
-                    ),
-                    preloadRuntimeAndModel(),
-                ]);
+                const mappingPromise = fetch("/mappings.json", {
+                    cache: "force-cache",
+                }).then((r) => r.json());
 
+                // 传入两个回调分别接收 onnx / wasm 的进度
+                const preloadPromise = preloadRuntimeAndModel(
+                    (p) => {
+                        if (!cancelled) setOnnxProgress(p);
+                    },
+                    (p) => {
+                        if (!cancelled) setWasmProgress(p);
+                    },
+                );
+
+                const [mp] = await Promise.all([
+                    mappingPromise,
+                    preloadPromise,
+                ]);
                 if (!cancelled) setMappings(mp);
             } catch (e) {
                 console.error("boot failed:", e);
@@ -58,7 +77,6 @@ export default function InferPage() {
             cancelled = true;
         };
     }, []);
-
     const onChange = useCallback(async (gray: Uint8Array) => {
         try {
             setInferLoading(true);
@@ -114,6 +132,18 @@ export default function InferPage() {
                         </h2>
                         <div className="text-sm text-gray-500">
                             {t(statusKey)}
+                            {bootLoading && (
+                                <div className="mt-1 flex flex-col gap-1 text-xs text-gray-500">
+                                    <DownloadProgressLine
+                                        label={t("model")}
+                                        progress={onnxProgress}
+                                    />
+                                    <DownloadProgressLine
+                                        label={t("runtime")}
+                                        progress={wasmProgress}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
 
