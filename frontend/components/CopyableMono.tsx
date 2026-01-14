@@ -1,4 +1,4 @@
-"use client";
+import { useI18n } from "@/lib/i18n";
 import { useState } from "react";
 
 async function copyToClipboard(text: string) {
@@ -13,11 +13,12 @@ export default function CopyableMono({
     tone?: "blue" | "green";
 }) {
     const [copied, setCopied] = useState(false);
+    const { t } = useI18n();
 
     const color =
         tone === "blue"
-            ? "text-blue-700 hover:text-blue-800"
-            : "text-green-700 hover:text-green-800";
+            ? "text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-500"
+            : "text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-500";
 
     const onClick = async () => {
         try {
@@ -52,13 +53,13 @@ export default function CopyableMono({
                     "absolute left-0 bottom-full mb-1",
                     "whitespace-nowrap",
                     "rounded px-2 py-1 text-xs",
-                    "bg-black text-white",
+                    "bg-gray-700 text-white",
                     "opacity-0 group-hover:opacity-100",
                     "transition-opacity",
                     "z-50",
                 ].join(" ")}
             >
-                {copied ? "复制成功" : "点击复制"}
+                {copied ? t("copySuccess") : t("copy")}
             </span>
         </button>
     );

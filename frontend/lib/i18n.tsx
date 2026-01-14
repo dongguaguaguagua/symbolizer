@@ -12,6 +12,10 @@ const dict = {
         submit: "提交",
         infer: "识别",
         symbols: "符号表",
+        toggleTheme: "切换主题",
+        lightToolTip: "切换到明亮主题",
+        darkToolTip: "切换到黑暗主题",
+        githubToolTip: "源代码仓库",
 
         // common
         clear: "清空画板",
@@ -56,6 +60,10 @@ const dict = {
         submit: "Submit",
         infer: "Recognize",
         symbols: "Symbols",
+        toggleTheme: "Toggle Theme",
+        lightToolTip: "Switch to light mode",
+        darkToolTip: "Switch to dark mode",
+        githubToolTip: "Source code repo",
 
         // common
         clear: "Clear Canvas",

@@ -51,7 +51,7 @@ export default function SymbolListPage() {
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         className="w-full sm:w-80 px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring
-                        bg-gray-50 dark:bg-gray-950"
+                        bg-gray-50 dark:bg-gray-950 text-black dark:text-white"
                     />
                 </div>
 
