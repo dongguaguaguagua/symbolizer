@@ -26,8 +26,6 @@ def extract_pdf_paths_to_svg(pdf_path, output_dir):
 
 # # 使用示例
 # # 去除276， 278
-# pdf_file = "/Users/hzy/Downloads/test-7.pdf"
-# output_directory = "./output_svgs"
 # extract_pdf_paths_to_svg(pdf_file, output_directory)
 
 def rename_files_in_folder(folder_path):
@@ -66,9 +64,10 @@ def encode_svg_files_to_base64(folder_path, output_file):
             # 打开并读取文件内容
             with open(file_path, 'rb') as file:
                 encoded_content = base64.b64encode(file.read()).decode('utf-8')
-                svg_data[filename
 
-                (".svg","")] = encoded_content
+            name = filename.removesuffix(".svg")
+            key = name.replace("page_", "")
+            svg_data[key] = encoded_content
 
     # 将文件名和编码内容写入JSON文件
     with open(output_file, 'w', encoding='utf-8') as json_file:
@@ -76,6 +75,10 @@ def encode_svg_files_to_base64(folder_path, output_file):
 
     print(f"所有文件已成功编码并保存至 {output_file}")
 
-# folder_path = '/Users/hzy/Downloads/symbolizer/output_svgs'  # 指定文件夹路径
-# output_file = './data/latex_symbol_svgs.json'       # 指定输出的JSON文件名称
-# encode_svg_files_to_base64(folder_path, output_file)
+if __name__ == "__main__":
+    pdf_file = "/Users/hzy/Downloads/all_latex_symbols.pdf"
+    folder_path = './output_svgs'  # 指定文件夹路径
+    output_file = './latex_symbol_svgs.json'       # 指定输出的JSON文件名称
+
+    extract_pdf_paths_to_svg(pdf_file, folder_path)
+    encode_svg_files_to_base64(folder_path, output_file)
