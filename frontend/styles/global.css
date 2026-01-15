@@ -10,3 +10,8 @@ body {
 canvas {
     touch-action: none;
 }
+
+.dark html,
+.dark body {
+    @apply bg-gray-50 dark:bg-gray-950;
+}
