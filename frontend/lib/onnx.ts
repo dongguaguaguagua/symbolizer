@@ -1,8 +1,19 @@
 // lib/onnx.ts
 import { DownloadProgress } from "@/components/DownloadProgressLine";
 
+const MODEL_URL = "/model/residualcnn_augment_int8.onnx";
+const WASM_URLS = ["/ort/ort-wasm-simd.wasm"];
+
 let session: any = null;
 let ort: any = null;
+let modelBuffer: ArrayBuffer | null = null;
+
+function contentTypeFor(url: string) {
+    if (url.endsWith(".wasm")) return "application/wasm";
+    if (url.endsWith(".onnx")) return "application/octet-stream";
+    if (url.endsWith(".json")) return "application/json";
+    return "application/octet-stream";
+}
 
 export async function loadSession() {
     if (typeof window === "undefined") {
@@ -22,37 +33,26 @@ export async function loadSession() {
         }
     }
 
-    session = await ort.InferenceSession.create(
-        // "/model/model_int8.onnx",
-        // "/model/residualcnn_int8.onnx",
-        "/model/residualcnn_augment_int8.onnx",
-        {
-            executionProviders: ["wasm"],
-            graphOptimizationLevel: "all",
-        },
-    );
+    if (!modelBuffer) {
+        throw new Error("Model buffer not preloaded");
+    }
+
+    session = await ort.InferenceSession.create(modelBuffer, {
+        executionProviders: ["wasm"],
+        graphOptimizationLevel: "all",
+    });
 
     return session;
 }
-
-/**
- * 页面加载：尽早触发下载/缓存 + ORT 初始化
- */
 async function fetchWithProgressAndCache(
     url: string,
     cache: Cache,
     onFileProgress: (loaded: number, total: number) => void,
-) {
+): Promise<ArrayBuffer | null> {
     const res = await fetch(url, { cache: "force-cache" });
+
     if (!res.ok || !res.body) {
-        // 如果没有 body 或状态异常，仍尝试把原始 response 放入 cache（容错）
-        try {
-            await cache.put(url, res.clone());
-        } catch {}
-        // 报告 0/total
-        const totalHeader = Number(res.headers.get("Content-Length")) || 0;
-        onFileProgress(totalHeader, totalHeader);
-        return;
+        return null;
     }
 
     const total = Number(res.headers.get("Content-Length")) || 0;
@@ -70,7 +70,6 @@ async function fetchWithProgressAndCache(
         }
     }
 
-    // 拼接为一个 ArrayBuffer
     const buf = new Uint8Array(received);
     let offset = 0;
     for (const c of chunks) {
@@ -78,34 +77,25 @@ async function fetchWithProgressAndCache(
         offset += c.length;
     }
 
-    // 构造 Response 并写入 cache，
-    // 写明 Content-Length 可让后续读取更稳定
     const headers = new Headers();
     headers.set("Content-Length", String(buf.byteLength));
     headers.set("Content-Type", contentTypeFor(url));
-    const resp = new Response(buf.buffer, { headers });
-    try {
-        await cache.put(url, resp);
-    } catch (e) {
-        console.warn("cache.put failed for", url, e);
-    }
-}
 
-function contentTypeFor(url: string) {
-    if (url.endsWith(".wasm")) return "application/wasm";
-    if (url.endsWith(".onnx")) return "application/octet-stream";
-    if (url.endsWith(".json")) return "application/json";
-    return "application/octet-stream";
+    const resp = new Response(buf.buffer, { headers });
+    await cache.put(url, resp.clone());
+
+    return buf.buffer;
 }
 
 function makePhaseDownloader(urls: string[]) {
-    // 返回一个函数： (onProgress) => Promise<void>
-    return async (onProgress?: (p: DownloadProgress) => void) => {
+    return async (
+        onProgress?: (p: DownloadProgress) => void,
+    ): Promise<Map<string, ArrayBuffer>> => {
         const cache = await caches.open("preload-cache-v1");
 
+        const buffers = new Map<string, ArrayBuffer>();
         const fileLoaded = new Map<string, number>();
         const fileTotal = new Map<string, number>();
-
         const start = performance.now();
 
         const report = () => {
@@ -114,48 +104,35 @@ function makePhaseDownloader(urls: string[]) {
             const elapsed = (performance.now() - start) / 1000;
             const speed = elapsed > 0 ? loaded / elapsed : 0;
 
-            const percent =
-                total > 0
-                    ? Math.min(100, (loaded / total) * 100)
-                    : loaded > 0
-                      ? 0
-                      : 0;
             onProgress?.({
                 loaded,
                 total,
-                percent,
+                percent: total ? Math.min(100, (loaded / total) * 100) : 0,
                 speed,
             });
         };
 
-        // 并行下载，但每个文件回调都会覆盖 fileLoaded[file]
-        await Promise.allSettled(
+        await Promise.all(
             urls.map(async (url) => {
-                // 先确保 fileTotal 有项（避免分母缺失）
                 fileLoaded.set(url, 0);
                 fileTotal.set(url, 0);
 
-                try {
-                    await fetchWithProgressAndCache(url, cache, (l, t) => {
+                const buf = await fetchWithProgressAndCache(
+                    url,
+                    cache,
+                    (l, t) => {
                         fileLoaded.set(url, l);
-                        // 仅在第一次拿到 non-zero total 时设置（防止覆盖）
-                        if (!fileTotal.get(url) && t) {
-                            fileTotal.set(url, t);
-                        } else if (t) {
-                            // 如果每次都有 t，也确保最新的 total 被记录（容错）
-                            fileTotal.set(url, t);
-                        }
+                        if (t) fileTotal.set(url, t);
                         report();
-                    });
-                } catch (e) {
-                    // 忽略单文件错误，但保留 zeros
-                    console.warn("fetchWithProgressAndCache failed", url, e);
-                }
+                    },
+                );
+
+                if (buf) buffers.set(url, buf);
             }),
         );
 
-        // 最终一次报告，保证 percent 会到 100（若 total>0）
         report();
+        return buffers;
     };
 }
 
@@ -165,29 +142,18 @@ export async function preloadRuntimeAndModel(
 ) {
     if (typeof window === "undefined") return;
 
-    const onnxUrls = [
-        "/model/model_int8.onnx",
-        // "/model/residualcnn_int8.onnx",
-        // "/model/residualcnn_augment_int8.onnx",
-    ];
+    const downloadOnnx = makePhaseDownloader([MODEL_URL]);
+    const onnxBuffers = await downloadOnnx(onOnnxProgress);
 
-    const wasmUrls = [
-        // "/ort/ort-wasm.wasm",
-        "/ort/ort-wasm-simd.wasm",
-        // "/ort/ort-wasm-threaded.wasm",
-        // "/ort/ort-wasm-simd-threaded.wasm",
-    ];
-
-    const downloadOnnxPhase = makePhaseDownloader(onnxUrls);
-    await downloadOnnxPhase(onOnnxProgress);
-    const downloadWasmPhase = makePhaseDownloader(wasmUrls);
-    await downloadWasmPhase(onWasmProgress);
-
-    try {
-        await loadSession();
-    } catch (e) {
-        console.warn("loadSession failed", e);
+    modelBuffer = onnxBuffers.get(MODEL_URL) ?? null;
+    if (!modelBuffer) {
+        throw new Error("Failed to preload ONNX model");
     }
+
+    const downloadWasm = makePhaseDownloader(WASM_URLS);
+    await downloadWasm(onWasmProgress);
+
+    await loadSession();
 }
 
 /** 数值稳定 softmax */
