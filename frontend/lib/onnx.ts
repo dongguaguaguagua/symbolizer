@@ -25,7 +25,7 @@ export async function loadSession() {
     session = await ort.InferenceSession.create(
         // "/model/model_int8.onnx",
         // "/model/residualcnn_int8.onnx",
-        "/model/residualcnn_augument_int8.onnx",
+        "/model/residualcnn_augment_int8.onnx",
         {
             executionProviders: ["wasm"],
             graphOptimizationLevel: "all",
@@ -168,7 +168,7 @@ export async function preloadRuntimeAndModel(
     const onnxUrls = [
         "/model/model_int8.onnx",
         // "/model/residualcnn_int8.onnx",
-        // "/model/residualcnn_augument_int8.onnx",
+        // "/model/residualcnn_augment_int8.onnx",
     ];
 
     const wasmUrls = [

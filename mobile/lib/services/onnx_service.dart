@@ -41,7 +41,7 @@ class OnnxService {
     final fut = _ort.createSessionFromAsset(
     	// 'assets/model/model_int8.onnx'
      	// 'assets/model/residualcnn_int8.onnx'
-      	'assets/model/residualcnn_augument_int8.onnx'
+      	'assets/model/residualcnn_augment_int8.onnx'
     );
     _sessionFuture = fut;
     return fut;

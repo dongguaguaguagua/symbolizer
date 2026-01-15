@@ -1,7 +1,7 @@
 import os
 import torch
 from torch.utils.data import TensorDataset, random_split
-from data_augument import target_count
+from data_augment import target_count
 import random
 from natsort import natsorted
 import gc

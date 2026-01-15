@@ -71,7 +71,7 @@ flutter:
         - assets/mappings.json
         - assets/model/model_int8.onnx
         - assets/model/residualcnn_int8.onnx
-        - assets/model/residualcnn_augument_int8.onnx
+        - assets/model/residualcnn_augment_int8.onnx
 
     # An image asset can refer to one or more resolution-specific "variants", see
     # https://flutter.dev/to/resolution-aware-images
