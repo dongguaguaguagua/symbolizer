@@ -1,0 +1,29 @@
+name: Release
+
+on:
+    push:
+        tags:
+            - "v*"
+
+jobs:
+    release:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Download APK artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  name: symbolizer-apk
+                  path: ./dist
+
+            - name: Create GitHub Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  files: |
+                      dist/app-arm64-v8a-release.apk
+                      dist/app-armeabi-v7a-release.apk
+                      dist/app-x86_64-release.apk
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

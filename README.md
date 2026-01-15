@@ -72,11 +72,11 @@ Evaluation accuracy on test data:
 
 ### Download ONNX model:
 
-| Model                                                                                      | size  | Description                                         |
-| ------------------------------------------------------------------------------------------ | ----- | --------------------------------------------------- |
-| [residualcnn_int8.onnx](https://symbolizer.pages.dev/model/residualcnn_int8.onnx)          | 1.6MB | Trained from raw data. Residual structure.          |
-| [residualcnn_augument_int8.onnx](https://symbolizer.pages.dev/model/residualcnn_int8.onnx) | 1.6MB | Trained from augumented data. Residual structure.   |
-| [model_int8.onnx](https://symbolizer.pages.dev/model/model_int8.onnx)                      | 1.3MB | Trained from augumented data. Simple CNN structure, |
+| Model                                                                                     | size  | Description                                        |
+| ----------------------------------------------------------------------------------------- | ----- | -------------------------------------------------- |
+| [residualcnn_int8.onnx](https://symbolizer.pages.dev/model/residualcnn_int8.onnx)         | 1.6MB | Trained from raw data. Residual structure.         |
+| [residualcnn_augment_int8.onnx](https://symbolizer.pages.dev/model/residualcnn_int8.onnx) | 1.6MB | Trained from augmented data. Residual structure.   |
+| [model_int8.onnx](https://symbolizer.pages.dev/model/model_int8.onnx)                     | 1.3MB | Trained from augmented data. Simple CNN structure, |
 
 ## Contribution
 
