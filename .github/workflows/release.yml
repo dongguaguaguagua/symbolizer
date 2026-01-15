@@ -5,6 +5,9 @@ on:
         tags:
             - "*"
 
+permissions:
+    contents: write
+
 jobs:
     release:
         runs-on: ubuntu-latest
@@ -15,13 +18,14 @@ jobs:
               with:
                   flutter-version: "3.38.x"
 
-            - run: flutter pub get
+            - name: Build APK
               working-directory: mobile
+              run: |
+                  flutter pub get
+                  flutter build apk --release --split-per-abi
 
-            - run: flutter build apk --release --split-per-abi
-              working-directory: mobile
-
-            - uses: softprops/action-gh-release@v2
+            - name: Create GitHub Release
+              uses: softprops/action-gh-release@v2
               with:
                   files: |
                       mobile/build/app/outputs/flutter-apk/app-*-release.apk
