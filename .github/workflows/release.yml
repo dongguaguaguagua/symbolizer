@@ -8,22 +8,20 @@ on:
 jobs:
     release:
         runs-on: ubuntu-latest
-
         steps:
             - uses: actions/checkout@v4
 
-            - name: Download APK artifacts
-              uses: actions/download-artifact@v4
+            - uses: subosito/flutter-action@v2
               with:
-                  name: symbolizer-apk
-                  path: ./dist
+                  flutter-version: "3.38.x"
 
-            - name: Create GitHub Release
-              uses: softprops/action-gh-release@v2
+            - run: flutter pub get
+              working-directory: mobile
+
+            - run: flutter build apk --release --split-per-abi
+              working-directory: mobile
+
+            - uses: softprops/action-gh-release@v2
               with:
                   files: |
-                      dist/app-arm64-v8a-release.apk
-                      dist/app-armeabi-v7a-release.apk
-                      dist/app-x86_64-release.apk
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                      mobile/build/app/outputs/flutter-apk/app-*-release.apk
