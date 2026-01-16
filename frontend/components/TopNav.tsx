@@ -109,7 +109,7 @@ export default function TopNav() {
 
                         {/* GitHub */}
                         <a
-                            href="https://github.com/dongguaguaguagua/symbolizer"
+                            href="https://github.com/zimya/symbolizer"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="p-2 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800 transition  relative group"
@@ -177,7 +177,7 @@ export default function TopNav() {
                     </button>
 
                     <a
-                        href="https://github.com/dongguaguaguagua/symbolizer"
+                        href="https://github.com/zimya/symbolizer"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-2 px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800 mt-2"

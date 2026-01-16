@@ -95,7 +95,7 @@ Evaluation accuracy on test data:
 clone repo:
 
 ```bash
-git clone https://github.com/dongguaguaguagua/symbolizer
+git clone https://github.com/zimya/symbolizer
 ```
 
 To build the website, you need to install dependencies.
